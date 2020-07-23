@@ -7,6 +7,7 @@ import TodoList from "./todo-list/TodoList";
 import ErrorBoundary from "./error-boundary/ErrorBoundary";
 import ErrorButton from "./error-button/error-button";
 import CreateTask from "./create-task/CreateTask";
+import './App.css'
 
 export default class App extends Component {
     constructor() {
@@ -27,11 +28,13 @@ export default class App extends Component {
             filter: 'all'
         };
     }
+
     // грузим все при создании
     componentDidMount() {
         this.getAll();
         this.getAllTags();
     }
+
     // проверка изменений полей и внесение извенений в стейт
     onChange = (e) => {
         this.setState({
@@ -47,7 +50,7 @@ export default class App extends Component {
                     status: 0,
                     priority: 0,
                     items: [...data].sort(function (a, b) {
-                        return b.priority - a.priority
+                        return new Date(b.created_at) - new Date(a.created_at);
                     }).sort()
                 },
                 () => {
@@ -69,30 +72,26 @@ export default class App extends Component {
     }
     //обновление
     onUpdate = () => {
+        updateItem(this.state.title, this.state.status, this.state.priority, this.state.selected_tags, this.state.id).then(() => {
+            this.getAll();
 
-        if (this.state.title !== '') {
-            updateItem(this.state.title, this.state.status, this.state.priority, this.state.selected_tags, this.state.id).then(() => {
-                this.getAll();
-
-            })
-            this.setState({
-                title: '',
-                status: 0,
-                priority: 0,
-                selected_tags: [],
-                editDisabled: '',
-                error: ''
-            })
-        } else {
-            this.setState({
-                error: 'Поле должно быть заполнено'
-            })
-        }
+        })
+        this.setState({
+            title: '',
+            status: 0,
+            priority: 0,
+            selected_tags: [],
+            editDisabled: '',
+            error: ''
+        })
         this.getAll()
     }
     // редактирование
     onEdit = (id) => {
-
+        window.scrollTo({
+            top: 0,
+            behavior: "smooth"
+        });
         let data = [...this.state.items]
         data.forEach((item, index) => {
             if (item.id === id) {
@@ -116,8 +115,11 @@ export default class App extends Component {
     }
     //удаление
     onDelete = (id) => {
-        deleteItem(id)
-        this.getAll()
+        let isConfirm = confirm("Удалить?");
+        if (isConfirm) {
+            deleteItem(id)
+            this.getAll()
+        }
     }
     /*--- Все что связано с тегами ---*/
     //получение
@@ -205,12 +207,15 @@ export default class App extends Component {
             return item.title.toLowerCase().indexOf(term.toLowerCase()) > -1
         })
     }
+
     onSearching = (term) => {
         this.setState({term})
     }
     onFilterChange = (filter) => {
+
         this.setState({filter})
     }
+
     filter(items, filter) {
         switch (filter) {
             case 'all':
@@ -231,7 +236,7 @@ export default class App extends Component {
         const visibleItems = this.filter(this.search(items, term), filter);
 
         return (
-            <div className="container col-md-6 mx-auto">
+            <div className="container col-md-6 mx-auto mb-5">
                 <div className="row">
                     <div className="">
                         <h1>Задачи</h1>
